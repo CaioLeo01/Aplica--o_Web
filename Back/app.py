@@ -9,17 +9,28 @@ CORS(app)  # Habilita o CORS para todas as rotas
 
 CSV_FILE = 'Dados.csv'
 
-# Função para verificar se o arquivo CSV existe
+# Função para verificar se o arquivo CSV existe e possui cabeçalhos válidos
 def verificar_arquivo_csv():
     if not os.path.exists(CSV_FILE):
         with open(CSV_FILE, 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerow(['nome', 'idade'])  # Cabeçalhos para o CSV
+    # Verifica se o CSV tem dados
+    try:
+        dados = pd.read_csv(CSV_FILE)
+    except pd.errors.EmptyDataError:
+        # Se o CSV estiver vazio, reescreve os cabeçalhos
+        with open(CSV_FILE, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['nome', 'idade'])
 
 # Função para ler dados do CSV
 def ler_csv():
-    verificar_arquivo_csv()  # Verifica e cria o arquivo caso não exista
-    return pd.read_csv(CSV_FILE).to_dict(orient='records')
+    verificar_arquivo_csv()  # Verifica e cria o arquivo caso não exista ou esteja vazio
+    try:
+        return pd.read_csv(CSV_FILE).to_dict(orient='records')
+    except pd.errors.EmptyDataError:
+        return []
 
 # Função para escrever dados no CSV
 def escrever_csv(dados):
